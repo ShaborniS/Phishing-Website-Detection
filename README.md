@@ -28,7 +28,7 @@ python test_detector.py
 You will be prompted to enter a URL:
 
 ```
-Enter URL: google.com
+Enter URL: https://www.google.com/
 ```
 
 Example output:
