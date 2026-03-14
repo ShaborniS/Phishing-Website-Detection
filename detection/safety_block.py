@@ -54,7 +54,10 @@ LEGIT_WHITELIST = {
 }
 
 PHISHING_BLACKLIST = {
-    ""
+    "https://web.whatsapp.com/",
+    "https://github.com/ShaborniS/Phishing-Website-Detection/tree/main/detection",
+    "https://kiit.ac.in/sap/",
+    "https://classroom.google.com/u/0/h"
 }
 
 
