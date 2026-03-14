@@ -16,10 +16,13 @@ class MLPhishingDetector:
 
     def predict(self, features: dict):
 
-        # keep only the features that the model expects
-        filtered = {k: features[k] for k in self.feature_names if k in features}
+        # build feature vector in exact training order
+        row = {}
 
-        df = pd.DataFrame([filtered])
+        for name in self.feature_names:
+            row[name] = features.get(name, 0)
+
+        df = pd.DataFrame([row])
 
         prediction = self.model.predict(df)[0]
 

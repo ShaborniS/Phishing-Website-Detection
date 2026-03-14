@@ -2,6 +2,7 @@ import pandas as pd
 import joblib
 import json
 import datetime
+
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
@@ -21,7 +22,6 @@ def train():
     phishing_urls = load_phishtank_dataset()
     legit_urls = load_legitimate_dataset()
 
-    # use larger dataset
     phishing_urls = phishing_urls[:8000]
     legit_urls = legit_urls[:8000]
 
@@ -39,15 +39,20 @@ def train():
     print("Splitting dataset...")
 
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
+        X,
+        y,
+        test_size=0.2,
+        stratify=y,
+        random_state=42
     )
 
     print("Training RandomForest model...")
 
     model = RandomForestClassifier(
-        n_estimators=250,
-        max_depth=14,
-        random_state=42
+        n_estimators=300,
+        max_depth=16,
+        random_state=42,
+        n_jobs=-1
     )
 
     model.fit(X_train, y_train)
@@ -64,17 +69,30 @@ def train():
     print("\nClassification Report:")
     print(classification_report(y_test, predictions))
 
-    # create model metadata
+    # Feature importance
+    print("\nFeature Importance:")
+
+    importance = pd.Series(
+        model.feature_importances_,
+        index=X.columns
+    ).sort_values(ascending=False)
+
+    print(importance)
+
+    joblib.dump(model, "models/phishing_model.pkl")
+    print("\nModel saved → models/phishing_model.pkl")
+
     metadata = {
-        "model_version": "1.0",
+        "model_version": "1.1",
         "algorithm": "RandomForest",
-        "n_estimators": 250,
-        "max_depth": 14,
+        "n_estimators": 300,
+        "max_depth": 16,
         "features_used": len(X.columns),
         "feature_names": list(X.columns),
         "training_samples": len(dataset),
         "training_data": ["PhishTank", "Majestic Million"],
-        "training_date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        "training_date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "accuracy": float(accuracy)
     }
 
     with open("models/model_info.json", "w") as f:

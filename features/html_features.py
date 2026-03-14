@@ -2,6 +2,13 @@ from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 
 
+def get_base_domain(domain):
+    parts = domain.split(".")
+    if len(parts) >= 2:
+        return parts[-2] + "." + parts[-1]
+    return domain
+
+
 def extract_html_features(html, base_url):
 
     features = {}
@@ -27,15 +34,27 @@ def extract_html_features(html, base_url):
     total_links = len(links)
 
     external_links = 0
+
     base_domain = urlparse(base_url).netloc
+    base_root = get_base_domain(base_domain)
 
     for link in links:
+
         link_domain = urlparse(link["href"]).netloc
-        if link_domain and link_domain != base_domain:
-            external_links += 1
+
+        if link_domain:
+
+            link_root = get_base_domain(link_domain)
+
+            if link_root != base_root:
+                external_links += 1
 
     if total_links > 0:
-        features["external_link_ratio"] = external_links / total_links
+        ratio = external_links / total_links
+
+        # cap extreme values to reduce bias
+        features["external_link_ratio"] = min(ratio, 0.9)
+
     else:
         features["external_link_ratio"] = 0
 
@@ -45,9 +64,15 @@ def extract_html_features(html, base_url):
     mismatch = 0
 
     for form in forms:
+
         action_domain = urlparse(form["action"]).netloc
-        if action_domain and action_domain != base_domain:
-            mismatch = 1
+
+        if action_domain:
+
+            action_root = get_base_domain(action_domain)
+
+            if action_root != base_root:
+                mismatch = 1
 
     features["form_action_external"] = mismatch
 

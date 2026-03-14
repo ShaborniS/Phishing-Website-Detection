@@ -1,9 +1,6 @@
 from core.input_validator import normalize_url
-from core.html_fetcher import fetch_html
-
+from detection.safety_block import check_safety_lists
 from features.url_features import extract_url_features
-from features.html_features import extract_html_features
-from features.feature_vector import build_feature_vector
 
 from detection.ml_model import MLPhishingDetector
 from detection.rule_engine import rule_based_detection
@@ -19,36 +16,36 @@ def analyze_url(url):
 
     url = normalize_url(url)
 
-    html = fetch_html(url)
+    # SAFETY BLOCK
+    safety_result = check_safety_lists(url)
 
+    if safety_result:
+        prediction, probability, level = safety_result
+
+        return {
+            "url": url,
+            "prediction": prediction,
+            "probability": probability,
+            "risk_score": int(probability * 100),
+            "risk_level": level
+        }
+
+    # ML detection
     url_features = extract_url_features(url)
 
-    html_features = extract_html_features(html, url)
+    feature_vector = url_features
 
-    feature_vector = build_feature_vector(url_features, html_features)
+    prediction, probability = detector.predict(feature_vector)
 
-    try:
+    score, level = compute_risk(probability, prediction)
 
-        prediction, probability = detector.predict(feature_vector)
-
-    except Exception:
-
-        prediction, score = rule_based_detection(feature_vector, url)
-
-        probability = score / 10
-
-    score, level = compute_risk(probability)
-
-    result = format_response(
-        url,
-        prediction,
-        probability,
-        score,
-        level,
-        feature_vector
-    )
-
-    return result
+    return {
+        "url": url,
+        "prediction": prediction,
+        "probability": round(probability, 3),
+        "risk_score": score,
+        "risk_level": level
+    }
 
 
 if __name__ == "__main__":

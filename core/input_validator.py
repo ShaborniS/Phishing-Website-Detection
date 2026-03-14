@@ -1,26 +1,16 @@
 from urllib.parse import urlparse
 
 
-def normalize_url(url: str) -> str:
-    """
-    Ensures URL contains scheme.
-    """
+def normalize_url(url: str):
+
+    url = url.strip()
+
     if not url.startswith(("http://", "https://")):
-        url = "http://" + url
+        url = "https://" + url
+
+    parsed = urlparse(url)
+
+    if not parsed.netloc:
+        raise ValueError("Invalid URL")
+
     return url
-
-
-def extract_domain(url: str) -> str:
-    """
-    Extract domain from URL.
-    """
-    parsed = urlparse(url)
-    return parsed.netloc
-
-
-def validate_url(url: str) -> bool:
-    """
-    Basic URL validation.
-    """
-    parsed = urlparse(url)
-    return all([parsed.scheme, parsed.netloc])

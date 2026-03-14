@@ -20,10 +20,7 @@ def analyze_url(url):
 
     url_features = extract_url_features(url)
 
-    html_features = extract_html_features(html, url)
-
-    feature_vector = build_feature_vector(url_features, html_features)
-
+    feature_vector = url_features
     prediction, probability = detector.predict(feature_vector)
 
     score, level = compute_risk(probability, prediction)

@@ -3,37 +3,50 @@ import pandas as pd
 
 def load_phishtank_dataset():
     """
-    Loads real phishing URLs from verified_online.csv
+    Load phishing URLs from PhishTank dataset
     """
+
     path = "data/raw/verified_online.csv"
 
     df = pd.read_csv(path)
 
-    # dataset contains many columns, we only need the URL
     urls = df["url"].dropna().tolist()
 
     return urls
 
 
 def load_legitimate_dataset():
+    """
+    Load legitimate domains from Majestic dataset
+    """
 
-    path = "data/processed/legit_urls_expanded.csv"
+    path = "data/raw/majestic_million.csv"
 
     df = pd.read_csv(path)
 
-    urls = df["url"].dropna().tolist()
+    # randomly sample domains to avoid dataset bias
+    domains = df["Domain"].dropna().sample(5000, random_state=42)
+
+    urls = []
+
+    common_paths = [
+        "",
+        "/home",
+        "/login",
+        "/account",
+        "/products",
+        "/search?q=test",
+        "/about",
+        "/support",
+        "/docs",
+        "/blog"
+    ]
+
+    for domain in domains:
+
+        for p in common_paths:
+
+            urls.append(f"https://{domain}{p}")
+            urls.append(f"https://www.{domain}{p}")
 
     return urls
-
-
-def load_uci_dataset():
-    """
-    Optional dataset (feature-based dataset already engineered).
-    We will not use it in training because it already contains
-    different features.
-    """
-    path = "data/raw/uci-ml-phishing-dataset.csv"
-
-    df = pd.read_csv(path)
-
-    return df
